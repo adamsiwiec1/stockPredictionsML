@@ -1,0 +1,20 @@
+Metadata-Version: 1.1
+Name: xp
+Version: 1.1
+Summary: xp is a framework for building and executing computing pipelines
+Home-page: https://github.com/druths/xp
+Author: Derek Ruths
+Author-email: druths@networkdynamics.org
+License: Apache
+Description: UNKNOWN
+Keywords: data science,research,build,automation
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Information Technology
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Information Analysis
+Classifier: Topic :: Utilities
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 2.7
