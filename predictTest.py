@@ -6,6 +6,7 @@ from predict import enter_stock,prep_data, prep_model, peek, plot_raw_hist,test_
 ticker = "nok"
 tickerList = ['azn','aapl','gme','nok', 'plyz','tsla','nakd']
 
+# test gitignore
 
 # Single prediction
 def predict(ticker):
