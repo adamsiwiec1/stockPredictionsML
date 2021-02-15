@@ -159,7 +159,6 @@ def predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation,
     plt.clf()
     plt.cla()
     fig = plt.figure(figsize=(20, 5))
-    # fig.suptitle(ticker, fontsize=20)
     # plt.yticks(temp)
     # plt.plot(X, Y)
     # plt.plot(predictTimestampList, predictions[(5313-60):5313])
@@ -176,7 +175,8 @@ def predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation,
     plt.grid()
     ax.set_xticklabels(predictTimestampList, rotation=80)
     # format x-axis (time)
-    plt.xticks(predictTimestampList, temp, fontsize=5)
+    plt.xticks(predictTimestampList[1::3],temp[1::3]) # This is numpy's slicing
+    # plt.xticks(predictTimestampList, temp, fontsize=5)
     # ax.xaxis.rcParams.update({'font.size': 5})
 
     plt.show()

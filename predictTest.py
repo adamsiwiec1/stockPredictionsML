@@ -4,17 +4,10 @@ from predict import enter_stock,prep_data, prep_model, peek, plot_raw_hist,test_
     predict_dtr, predict_dtr_plot  # predict_knn, predict_cart_and_knn
 
 ticker = "nok"
-tickerList = ['azn','aapl','gme','plyz','tsla','nakd']
+tickerList = ['azn','aapl','gme','nok', 'plyz','tsla','nakd']
 
 
-# data = enter_stock(ticker, datetime(2000, 1, 1), datetime(2021, 2, 14))
-# prices = prep_data(data)
-# X,Y,X_train,X_validation,Y_train,Y_validation = prep_model(prices)
-# # Show models & probability - currently using CART
-# test_models(X_train,Y_train)
-# predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation, 90)
-
-
+# Single prediction
 def predict(ticker):
         data = enter_stock(ticker, datetime(2000, 1, 1), datetime(2021, 2, 14))
         prices = prep_data(data)
@@ -23,14 +16,16 @@ def predict(ticker):
         test_models(X_train, Y_train)
         predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation, 90)
 
-
+# Prediction loop
 def predict_list(tickers):
-    data = enter_stock(ticker, datetime(2000, 1, 1), datetime(2021, 2, 14))
-    prices = prep_data(data)
-    X, Y, X_train, X_validation, Y_train, Y_validation = prep_model(prices)
-    # Show models & probability - currently using CART
-    test_models(X_train, Y_train)
-    predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation, 90)
+    for ticker in tickers:
+        data = enter_stock(ticker, datetime(2000, 1, 1), datetime(2021, 2, 14))
+        prices = prep_data(data)
+        X, Y, X_train, X_validation, Y_train, Y_validation = prep_model(prices)
+        # Show models & probability - currently using CART
+        test_models(X_train, Y_train)
+        predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation, 90)
+
 
 predict_list(tickerList)
 
