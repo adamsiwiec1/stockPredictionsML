@@ -8,7 +8,7 @@ prices = prep_data(data)
 X,Y,X_train,X_validation,Y_train,Y_validation = prep_model(prices)
 # Show models & probability - currently using CART
 test_models(X_train,Y_train)
-predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, 60)
+predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, 20)
 # predict_knn(X,Y,X_train,Y_train,X_validation,Y_validation,60)
 # predict_cart_and_knn(X,Y,X_train,Y_train,X_validation,Y_validation,60)
 
