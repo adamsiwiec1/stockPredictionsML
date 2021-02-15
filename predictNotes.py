@@ -1,3 +1,7 @@
+
+
+# Created this to keep all my code notes - predict.py will have only basic notes
+
 from datetime import datetime, timedelta, date
 import yfinance as yf
 import pandas as pd
@@ -16,7 +20,6 @@ from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from matplotlib.ticker import MaxNLocator
 
-
 # Properties
 timestamps = []
 
@@ -25,7 +28,10 @@ timestamps = []
 def enter_stock(ticker, startDate, endDate):
     data = yf.download(ticker, startDate, endDate, interval='1d')
     return data
+# data = yf.download("AZN", datetime(1994, 1, 1), datetime(2020, 1, 1), interval='1d')
 
+
+# **Created timestamps myself - yfinance ones were inconsistent ** #
 def create_timestamps(stockData, dateArray):
     for x in range(len(dateArray)):
         stringTime = (str(stockData['Date'][x]))
@@ -45,6 +51,11 @@ def prep_data(rawData):
     return stockData
 
 
+# Peek data if you want
+def peek(prices):
+    print(prices)
+
+
 # *** 2b. Prepare our model *** #
 def prep_model(prices):
     dataset = prices.values
@@ -54,6 +65,13 @@ def prep_model(prices):
     seed = 7
     X_train, X_validation, Y_train, Y_validation = train_test_split(X, Y, test_size=validation_size, random_state=seed)
     return X,Y,X_train,X_validation,Y_train,Y_validation
+
+
+def plot_raw_hist(X,Y):
+    plot = plt.plot(X,Y,'r')
+    plt.setp(plot, 'color', 'r', 'linewidth', 0.5)
+    plt.figure(1)
+    plt.show()
 
 
 def test_models(X_train,Y_train):
@@ -114,18 +132,20 @@ def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredic
             count[1]+=1
             print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
 
-    # Final step - create and show the graph.
-    plt.figure(figsize=(50, 25))
-    tempLeng = len(predictTimestampList)
-    temp = []
-    count = 0
-    for leng in range(tempLeng):
-        count+=1
-        temp.append(count)
-
-    # plt.yticks(temp)
+    # %matplotlib inline
+    fig = plt.figure(figsize=(24, 12))
     # plt.plot(X, Y)
     # plt.plot(predictTimestampList, predictions[(5313-60):5313])
+    # tempLeng = len(predictTimestampList)
+    # temp = []
+    # count = 0
+    # for leng in range(tempLeng):
+    #     count+=1
+    #     temp.append(count)
+
+
+
+    # plt.yticks(temp)
     plt.ylabel('Price')
     plt.xlabel('Time (Days)')
     plt.yscale('linear')
@@ -133,24 +153,122 @@ def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredic
     ax = plt.figure().gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.plot(predictTimestampList, predictions[(5313-60):5313])
-
-    plt.xticks(predictTimestampList, temp)
-
     plt.show()
 
     return predictions
 
 
-# Extra methods:
-# ** Plot a graph of two variables - no predictions ** #
-def plot_raw_hist(X,Y):
-    plot = plt.plot(X,Y,'r')
-    plt.setp(plot, 'color', 'r', 'linewidth', 0.5)
-    plt.figure(1)
+def predict_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
+    # get prediction dates
+    base = date.today()
+    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    predictDateList = []  # Used to display the date of prediction to user
+    predictTimestampList = []
+
+    # convert to time stamp
+    for dt in dates:
+        stringTime = (str(dt))
+        predictDateList.append(stringTime)
+        timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+        predictTimestampList.append(timestamp)
+        # to array X
+        np.append(X, int(timestamp))
+
+    # Define model
+    model = KNeighborsRegressor()
+    # Fit to model
+    model.fit(X_train, Y_train)
+    # predict
+    predictions = model.predict(X)
+    print(mean_squared_error(Y, predictions))
+
+    print(len(predictions))
+    leng = len(predictions)
+    count = [0,0]
+    for predict in predictions:
+        count[0]+=1
+        if count[0] > leng - daysToPredict:
+            count[1]+=1
+            print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
+
+    # %matplotlib inline
+    fig = plt.figure(figsize=(24, 12))
+    # plt.plot(X, Y)
+    plt.plot(predictTimestampList, predictions[(5313-60):5313])
     plt.show()
 
+    return predictions
 
-# ** Peek prices ** #
-def peek(prices):
-    print(prices)
 
+# Combine two models into one and divide each result before printing
+def predict_cart_and_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
+    # base = date.today()
+    # dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    # stringDateList = []  # Used to display the date of prediction to user
+
+    # for dt in dates:
+    #     stringTime = (str(dt))
+    #     stringDateList.append(stringTime)
+    #     timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+    #     # to array X
+    #     np.append(X, int(timestamp))
+    #
+    # model = KNeighborsRegressor()
+
+    # model.fit(X_train, Y_train)
+
+    # predictions = model.predict(X)
+    # print(mean_squared_error(Y, predictions))  # Print mean sq error
+    #
+    # # Define model 2
+    # model = KNeighborsRegressor()
+    # # Fit to model 2
+    # model.fit(X_train, Y_train)
+    # # predict 2
+    # predictions2 = model.predict(X)
+    # print(mean_squared_error(Y, predictions))  # Print mean sq error 2
+    #
+    # predictList = []
+    # predictList2 = []
+    #
+    # leng = len(predictions)
+    # count = [0, 0]
+    # for predict in predictions:
+    #     count[0] += 1
+    #     if count[0] > leng - daysToPredict:
+    #         count[1] += 1
+    #         predictList.append(predict)
+    # for predict in predictions2:
+    #     count[0] += 1
+    #     if count[0] > leng - daysToPredict:
+    #         count[1] += 1
+    #         predictList2.append(predict)
+    # for x in range(len(predictList)):
+    #
+    #     print(str(predictList[x]))
+    #     print(str(predictList2[x]))
+    #
+    #     print(str(predictList[x] + predictList2[x]))
+    #     # print(f'Prediction ({stringDateList[x]}) = ' + (predictList[x]+predictList2[x]))
+
+    knnPreds = predict_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict)
+    cartPreds = predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredict)
+
+    count1 = 0
+    count2 = 0
+
+    for predict in knnPreds:
+        count1+=1
+        print(f'#{count1} knn predict{predict}')
+    for predict in cartPreds:
+        count2+=1
+        print(f'#{count2} cart predict{predict}')
+
+
+
+
+    # %matplotlib inline
+    # fig = plt.figure(figsize=(24, 12))
+    # plt.plot(X, Y)
+    # plt.plot(X, predictions)
+    # plt.show()
