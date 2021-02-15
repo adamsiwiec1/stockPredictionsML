@@ -17,8 +17,6 @@ from sklearn.tree import DecisionTreeRegressor
 from matplotlib.ticker import MaxNLocator
 
 
-# Properties
-timestamps = []
 
 
 # *** Step 1. Pull the data *** #
@@ -27,11 +25,13 @@ def enter_stock(ticker, startDate, endDate):
     return data
 
 def create_timestamps(stockData, dateArray):
+    timestamps = []
     for x in range(len(dateArray)):
         stringTime = (str(stockData['Date'][x]))
         stringTime = stringTime.split(' ')
         timestamp = time.mktime(datetime.strptime(stringTime[0], "%Y-%m-%d").timetuple())
         timestamps.append(timestamp)
+    return timestamps
 
 
 # *** 2. Prepare the data *** # (We are grabbing 'Open' price)
@@ -39,7 +39,7 @@ def prep_data(rawData):
     stockData = rawData[rawData.columns[0:1]]
     stockData.reset_index(level=0, inplace=True)
     dateArray = pd.to_datetime(stockData['Date'])
-    create_timestamps(stockData, dateArray)
+    timestamps = create_timestamps(stockData, dateArray)
     stockData['Time'] = timestamps  # Add timestamps to our data
     stockData = stockData.drop(['Date'], axis=1)  # We drop date now that we have timestamp
     return stockData
@@ -114,8 +114,40 @@ def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredic
             count[1]+=1
             print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
 
+
+def predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredict):
+    # get prediction dates
+    base = date.today()
+    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    predictTimestampList = []  # Used to display the date of prediction to user
+
+    # convert to time stamp
+    for dt in dates:
+        stringTime = (str(dt))
+        predictTimestampList.append(stringTime)
+        timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+        # to array X
+        np.append(X, int(timestamp))
+
+    # Define model
+    model = DecisionTreeRegressor()
+    # Fit to model
+    model.fit(X_train, Y_train)
+    # predict
+    predictions = model.predict(X)
+    predLength = len(predictions)
+
+    print(len(predictions))
+    leng = len(predictions)
+    count = [0,0]
+    for predict in predictions:
+        count[0]+=1
+        if count[0] > leng - daysToPredict:
+            count[1]+=1
+            print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
+
     # Final step - create and show the graph.
-    plt.figure(figsize=(50, 25))
+
     tempLeng = len(predictTimestampList)
     temp = []
     count = 0
@@ -123,22 +155,33 @@ def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredic
         count+=1
         temp.append(count)
 
+    # Clear old plot - for the for loop
+    plt.clf()
+    plt.cla()
+    fig = plt.figure(figsize=(20, 5))
+    # fig.suptitle(ticker, fontsize=20)
     # plt.yticks(temp)
     # plt.plot(X, Y)
     # plt.plot(predictTimestampList, predictions[(5313-60):5313])
+    plt.ion()
+    plt.title(str(ticker))
     plt.ylabel('Price')
     plt.xlabel('Time (Days)')
     plt.yscale('linear')
     plt.xlabel(predictTimestampList)
     ax = plt.figure().gca()
+    plt.suptitle(ticker, fontsize=20)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.plot(predictTimestampList, predictions[(5313-daysToPredict):5313]) # Improvement
-
+    plt.plot(predictTimestampList, predictions[(predLength-daysToPredict):predLength]) # Improvement
+    plt.grid()
+    ax.set_xticklabels(predictTimestampList, rotation=80)
     # format x-axis (time)
-    plt.xticks(predictTimestampList, temp)
-    plt.rcParams.update({'font.size': 1})
+    plt.xticks(predictTimestampList, temp, fontsize=5)
+    # ax.xaxis.rcParams.update({'font.size': 5})
 
     plt.show()
+
+    print("Mean sq. error:" + str(mean_squared_error(Y, predictions)))
 
     return predictions
 
