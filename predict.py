@@ -132,7 +132,7 @@ def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredic
     plt.xlabel(predictTimestampList)
     ax = plt.figure().gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.plot(predictTimestampList, predictions[(5313-daysToPredict):5313])
+    ax.plot(predictTimestampList, predictions[(5313-daysToPredict):5313]) # Improvement
 
     # format x-axis (time)
     plt.xticks(predictTimestampList, temp)
