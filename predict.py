@@ -101,12 +101,12 @@ def predict_cart(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
     # get prediction dates
     base = date.today()
     dates = [base + timedelta(days=x) for x in range(daysToPredict)]
-    stringDateList = []  # Used to display the date of prediction to user
+    predictTimestampList = []  # Used to display the date of prediction to user
 
     # convert to time stamp
     for dt in dates:
         stringTime = (str(dt))
-        stringDateList.append(stringTime)
+        predictTimestampList.append(stringTime)
         timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
         # to array X
         np.append(X, int(timestamp))
@@ -126,24 +126,27 @@ def predict_cart(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
         count[0]+=1
         if count[0] > leng - daysToPredict:
             count[1]+=1
-            print(f'Prediction ({stringDateList[count[1]-1]}) = ' + str(predict))
+            print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
 
     # %matplotlib inline
     fig = plt.figure(figsize=(24, 12))
-    plt.plot(X, Y)
-    plt.plot(X, predictions)
+    # plt.plot(X, Y)
+    plt.plot(predictTimestampList, predictions[(5313-60):5313])
     plt.show()
+
+    return predictions
+
 
 def predict_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
     # get prediction dates
     base = date.today()
     dates = [base + timedelta(days=x) for x in range(daysToPredict)]
-    stringDateList = []  # Used to display the date of prediction to user
+    predictTimestampList = []  # Used to display the date of prediction to user
 
     # convert to time stamp
     for dt in dates:
         stringTime = (str(dt))
-        stringDateList.append(stringTime)
+        predictTimestampList.append(stringTime)
         timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
         # to array X
         np.append(X, int(timestamp))
@@ -163,74 +166,92 @@ def predict_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
         count[0]+=1
         if count[0] > leng - daysToPredict:
             count[1]+=1
-            print(f'Prediction ({stringDateList[count[1]-1]}) = ' + str(predict))
+            print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
 
     # %matplotlib inline
     fig = plt.figure(figsize=(24, 12))
-    plt.plot(X, Y)
-    plt.plot(X, predictions)
+    # plt.plot(X, Y)
+    plt.plot(predictTimestampList, predictions[(5313-60):5313])
     plt.show()
+
+    return predictions
 
 
 # Combine two models into one and divide each result before printing
 def predict_cart_and_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict):
-    # get prediction dates
-    base = date.today()
-    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
-    stringDateList = []  # Used to display the date of prediction to user
+    # # get prediction dates
+    # base = date.today()
+    # dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    # stringDateList = []  # Used to display the date of prediction to user
+    #
+    # # convert to time stamp
+    # for dt in dates:
+    #     stringTime = (str(dt))
+    #     stringDateList.append(stringTime)
+    #     timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+    #     # to array X
+    #     np.append(X, int(timestamp))
+    #
+    # # Define model
+    # model = KNeighborsRegressor()
+    # # Fit to model
+    # model.fit(X_train, Y_train)
+    # # predict
+    # predictions = model.predict(X)
+    # print(mean_squared_error(Y, predictions))  # Print mean sq error
+    #
+    # # Define model 2
+    # model = KNeighborsRegressor()
+    # # Fit to model 2
+    # model.fit(X_train, Y_train)
+    # # predict 2
+    # predictions2 = model.predict(X)
+    # print(mean_squared_error(Y, predictions))  # Print mean sq error 2
+    #
+    # predictList = []
+    # predictList2 = []
+    #
+    # leng = len(predictions)
+    # count = [0, 0]
+    # for predict in predictions:
+    #     count[0] += 1
+    #     if count[0] > leng - daysToPredict:
+    #         count[1] += 1
+    #         predictList.append(predict)
+    # for predict in predictions2:
+    #     count[0] += 1
+    #     if count[0] > leng - daysToPredict:
+    #         count[1] += 1
+    #         predictList2.append(predict)
+    # for x in range(len(predictList)):
+    #
+    #     print(str(predictList[x]))
+    #     print(str(predictList2[x]))
+    #
+    #     print(str(predictList[x] + predictList2[x]))
+    #     # print(f'Prediction ({stringDateList[x]}) = ' + (predictList[x]+predictList2[x]))
 
-    # convert to time stamp
-    for dt in dates:
-        stringTime = (str(dt))
-        stringDateList.append(stringTime)
-        timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
-        # to array X
-        np.append(X, int(timestamp))
+    knnPreds = predict_knn(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict)
+    cartPreds = predict_cart(X,Y,X_train,Y_train,X_validation,Y_validation, daysToPredict)
 
-    # Define model
-    model = KNeighborsRegressor()
-    # Fit to model
-    model.fit(X_train, Y_train)
-    # predict
-    predictions = model.predict(X)
-    print(mean_squared_error(Y, predictions))  # Print mean sq error
+    count1 = 0
+    count2 = 0
 
-    # Define model 2
-    model = KNeighborsRegressor()
-    # Fit to model 2
-    model.fit(X_train, Y_train)
-    # predict 2
-    predictions2 = model.predict(X)
-    print(mean_squared_error(Y, predictions))  # Print mean sq error 2
-
-    predictList = []
-    predictList2 = []
-
-    leng = len(predictions)
-    count = [0, 0]
-    for predict in predictions:
-        count[0] += 1
-        if count[0] > leng - daysToPredict:
-            count[1] += 1
-            predictList.append(predict)
-    for predict in predictions2:
-        count[0] += 1
-        if count[0] > leng - daysToPredict:
-            count[1] += 1
-            predictList2.append(predict)
-    for x in range(len(predictList)):
-        print(f'Prediction ({stringDateList[x]}) = ' + str((predictList[x]+predictList2[x])/2))
-
-
+    for predict in knnPreds:
+        count1+=1
+        print(f'#{count1} knn predict{predict}')
+    for predict in cartPreds:
+        count2+=1
+        print(f'#{count2} cart predict{predict}')
 
 
 
 
     # %matplotlib inline
-    fig = plt.figure(figsize=(24, 12))
-    plt.plot(X, Y)
-    plt.plot(X, predictions)
-    plt.show()
+    # fig = plt.figure(figsize=(24, 12))
+    # plt.plot(X, Y)
+    # plt.plot(X, predictions)
+    # plt.show()
 
 
 
