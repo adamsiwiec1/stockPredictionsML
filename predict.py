@@ -17,12 +17,11 @@ from sklearn.tree import DecisionTreeRegressor
 from matplotlib.ticker import MaxNLocator
 
 
-
-
 # *** Step 1. Pull the data *** #
 def enter_stock(ticker, startDate, endDate):
     data = yf.download(ticker, startDate, endDate, interval='1d')
     return data
+
 
 def create_timestamps(stockData, dateArray):
     timestamps = []
