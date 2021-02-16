@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import time
 from numpy.core import ravel
+from openpyxl import Workbook
+from pandas import DataFrame
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import LinearRegression, Lasso, ElasticNet
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
@@ -15,6 +17,8 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from matplotlib.ticker import MaxNLocator
+import openpyxl
+from openpyxl.chart import LineChart, Reference
 
 
 # *** Step 1. Pull the data *** #
@@ -49,7 +53,7 @@ def prep_model(prices):
     dataset = prices.values
     X = dataset[:,1].reshape(-1,1)
     Y = ravel(dataset[:,0:1])  # Ravel changes it from vector to 1D array
-    validation_size = 0.15
+    validation_size = 0.20  # 0.15
     seed = 7
     X_train, X_validation, Y_train, Y_validation = train_test_split(X, Y, test_size=validation_size, random_state=seed)
     return X,Y,X_train,X_validation,Y_train,Y_validation
@@ -82,7 +86,7 @@ def test_models(X_train,Y_train):
         print(msg)
 
 
-def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredict):
+def predict_dtr(X, Y, X_train, Y_train, daysToPredict):
     # get prediction dates
     base = date.today()
     dates = [base + timedelta(days=x) for x in range(daysToPredict)]
@@ -114,7 +118,33 @@ def predict_dtr(X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredic
             print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
 
 
-def predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation, daysToPredict):
+def predict_dtr_csv(X, Y, X_train, Y_train, daysToPredict):
+    # get prediction dates
+    base = date.today()
+    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    predictTimestampList = []  # Used to display the date of prediction to user
+
+    # convert to time stamp
+    for dt in dates:
+        stringTime = (str(dt))
+        predictTimestampList.append(stringTime)
+        timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+        # to array X
+        np.append(X, int(timestamp))
+
+    # Define model
+    model = DecisionTreeRegressor()
+    # Fit to model
+    model.fit(X_train, Y_train)
+    # predict
+    predictions = model.predict(X)
+    meanSqError = mean_squared_error(Y, predictions)
+    
+    # We return the same amount of days in the past as the user wants to predict - e.g. 90 daysToPredict returns 180
+    return predictions[(len(predictions)-(daysToPredict*2)):len(predictions)], meanSqError
+
+
+def predict_dtr_plot(ticker, X, Y, X_train, Y_train, daysToPredict):
     # get prediction dates
     base = date.today()
     dates = [base + timedelta(days=x) for x in range(daysToPredict)]
@@ -184,6 +214,66 @@ def predict_dtr_plot(ticker, X, Y, X_train, Y_train, X_validation, Y_validation,
 
     return predictions
 
+
+# Extras
+# # Creates an excel graph as well as a csv - not done - using matlab .jpg for now
+# def predict_dtr_csv_linechart(ticker,X, Y, X_train, Y_train, daysToPredict, filePath):
+#     # get prediction dates
+#     base = date.today()
+#     dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+#     predictTimestampList = []  # Used to display the date of prediction to user
+#
+#     # convert to time stamp
+#     for dt in dates:
+#         stringTime = (str(dt))
+#         predictTimestampList.append(stringTime)
+#         timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+#         # to array X
+#         np.append(X, int(timestamp))
+#
+#     # Define model
+#     model = DecisionTreeRegressor()
+#     # Fit to model
+#     model.fit(X_train, Y_train)
+#     # predict
+#     predictions = model.predict(X)
+#     meanSqError = mean_squared_error(Y, predictions)
+#
+#     # excel line graph
+#     wb = Workbook()
+#     ws = wb.active
+#     sheet_name = ticker
+#     writer = pd.ExcelWriter(f'{filePath}\\{ticker}.xlsx', engine='xlsxwriter')
+#
+#     # create dataframe/merge dates and predictions
+#     predictDates_df = DataFrame(dates)
+#     predictions_df = DataFrame(predictions)
+#     predictDates_df.columns = ['dates']
+#     predictDates_df.insert(0, "predictions", predictions_df)
+#     df = predictions_df
+#     print(df)
+#     df.to_excel(writer,sheet_name=sheet_name)
+#
+#     workbook = writer.book
+#     worksheet = writer.sheets[sheet_name]
+#
+#     chart = workbook.add_chart({'type': 'line'})
+#
+#     worksheet.insert_chart('D2',chart)
+#
+#     # z1 = LineChart()
+#     # z1.title = ticker
+#     #
+#     # data = Reference(writer, min_col=1, min_row=1, max_col=daysToPredict, max_row=daysToPredict)
+#     # z1.add_data(data)
+#
+#     # Need to configure series ##########################
+#     chart.add_series({'values': f'={sheet_name}!$A$2:$A${daysToPredict}'})
+#     # writer.add_chart(z1, "A10")
+#     writer.save()
+#
+#     # We return the same amount of days in the past as the user wants to predict - e.g. 90 daysToPredict returns 180
+#     # return predictions[(len(predictions) - daysToPredict:len(predictions)], meanSqError
 
 # Extra methods:
 # ** Plot a graph of two variables - no predictions ** #
