@@ -1,29 +1,26 @@
-from datetime import datetime, timedelta, date
-import yfinance as yf
-import pandas as pd
-import numpy as np
 import time
-from numpy.core import ravel
-from openpyxl import Workbook
-from pandas import DataFrame
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.linear_model import LinearRegression, Lasso, ElasticNet
-from sklearn.model_selection import train_test_split, KFold, cross_val_score
-import matplotlib.pyplot as plt
+from datetime import datetime, timedelta, date
+
+import numpy as np
+import pandas as pd
+import yfinance as yf
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from numpy import ravel
+from sklearn.linear_model import LinearRegression, Lasso, ElasticNet
 from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
+
+
 # *** 1. Download the data *** #
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
-from matplotlib.ticker import MaxNLocator
-import openpyxl
-from openpyxl.chart import LineChart, Reference
 
 
-# *** Step 1. Pull the data *** #
-def enter_stock(ticker, startDate, endDate):
-    data = yf.download(ticker, startDate, endDate, interval='1d')
+# *** Step 1b. Pull the data *** #
+def enter_stock(ticker, start_date, end_date):
+    data = yf.download(ticker, start_date, end_date, interval='1d')
     return data
 
 
@@ -51,8 +48,8 @@ def prep_data(rawData):
 # *** 2b. Prepare our model *** #
 def prep_model(prices):
     dataset = prices.values
-    X = dataset[:,1].reshape(-1,1)
-    Y = ravel(dataset[:,0:1])  # Ravel changes it from vector to 1D array
+    X = dataset[:, 1].reshape(-1, 1)
+    Y = ravel(dataset[:, 0:1])  # Ravel changes it from vector to 1D array
     validation_size = 0.20  # 0.15
     seed = 7
     X_train, X_validation, Y_train, Y_validation = train_test_split(X, Y, test_size=validation_size, random_state=seed)
@@ -60,7 +57,7 @@ def prep_model(prices):
 
 
 def test_models(X_train,Y_train):
-    num_folds = 10
+    num_folds = 100
     seed = 7
     scoring = "r2"
 

@@ -2,11 +2,11 @@ from datetime import datetime
 from pathlib import Path
 import pandas as pd
 from predict import enter_stock,prep_data, prep_model, peek, plot_raw_hist,test_models,\
-    predict_dtr, predict_dtr_plot, predict_dtr_csv, predict_dtr_csv_linechart  # predict_knn, predict_cart_and_knn,
-from mypackages import stock2csv
+    predict_dtr, predict_dtr_plot, predict_dtr_csv
+# from mypackages import stock2csv
 import os
 
-ticker = "nok"
+ticker = "syn"
 tickerList = ['aapl','gme','nok', 'plyz','tsla','nakd']
 
 days = 90
@@ -27,7 +27,7 @@ def predict(ticker):
 # Prediction loop
 def predict_list(tickers):
     for ticker in tickers:
-        data = enter_stock(ticker, datetime(2000, 1, 1), datetime(2021, 2, 14))
+        data = enter_stock(ticker, datetime(2000, 3, 1), datetime(2021, 6, 1))
         prices = prep_data(data)
         X, Y, X_train, X_validation, Y_train, Y_validation = prep_model(prices)
         predict_dtr_plot(ticker, X, Y, X_train, Y_train, days)
@@ -40,7 +40,6 @@ def predict_to_csv(tickers, filePath):
         prices = prep_data(data)
         X, Y, X_train, X_validation, Y_train, Y_validation = prep_model(prices)
         predictions, meansqError = predict_dtr_csv(X,Y,X_train,Y_train, days)
-
 
         error = [meansqError,'']
         error = pd.DataFrame(error)
@@ -68,6 +67,8 @@ def predict_to_csv(tickers, filePath):
         elif tempPath[length-1] != '\\':
             predictions.to_csv(tempPath+"\\"+ticker+".csv")
 
+
+predict_list(tickerList)
 
 # def predict_to_excel_wlinechart(tickers, filePath):
 #     for ticker in tickers:
