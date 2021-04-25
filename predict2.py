@@ -27,6 +27,7 @@ def enter_stock(ticker, start_date, end_date):
     return data
 
 
+
 # *** Step 1c. Convert our dates to timestamps *** #
 def create_timestamps(stock_data, date_array):
     timestamps = []
@@ -161,13 +162,13 @@ def predict_dtr_plot(ticker, x, y, x_train, y_train, days_predict, filePath):
     print(len(predictions))
     length = len(predictions)
     count = [0, 0]
-    prediction_timestamp_2plot = []
+    # prediction_timestamp_2plot = []
     for predict in predictions:
         count[0] += 1
         if count[0] > length - days_predict:
             count[1] += 1
             print(f'Prediction ({predict_timestamp_list[count[1] - 1]}) = ' + str(predict))
-            prediction_timestamp_2plot.append(predict_timestamp_list[count[1] - 1])
+            # prediction_timestamp_2plot.append(predict_timestamp_list[count[1] - 1])
 
     # Final step - create and show the graph
     pred_length = len(predict_timestamp_list)
@@ -183,10 +184,14 @@ def predict_dtr_plot(ticker, x, y, x_train, y_train, days_predict, filePath):
     predictions=predictions[-90:]
     plt.figure(figsize=(20, 5))
     # prediction_dates = np.array(prediction_timestamp_2plot)
-    plt.plot(prediction_timestamp_2plot, predictions)
+    plt.plot(predict_timestamp_list, predictions)
     plt.title(str(ticker))
     plt.ylabel('Price', fontsize=12)
-    plt.yticks(predictions)
+
+    # I use slice notation for the ticks - ex: a[start_index:end_index:step]
+    plt.yticks(predictions[::10])
+    plt.xticks(predict_timestamp_list[::10])
+
     # plt.xlabel('Time (Days)', fontsize=12)
     # plt.yscale('linear')
     # plt.xlabel(predict_timestamp_list)
@@ -196,18 +201,17 @@ def predict_dtr_plot(ticker, x, y, x_train, y_train, days_predict, filePath):
     plt.grid(True)
     # ax.set_xticklabels(predict_timestamp_list, rotation=80)
     # plt.xticks(predict_timestamp_list[1::3], temp[1::3])  # This is numpy's slicing
-    if filePath:
-        os.mkdir(f"{filePath}/{ticker}/")  # Make directory to store our export data
+    if filePath: # Make directory to store our export data
         try:
-            plt.savefig(f"{filePath}/{ticker}/{ticker}.png")
-            print(f"Plot image is located at: {filePath}/{ticker}/{ticker}.csv")
+            plt.savefig(f"{filePath}/{ticker}.png")
+            print(f"Plot image is located at: {filePath}/{ticker}/{ticker}.png")
         except:
             print(f"There was an exporting the plot image for {ticker}.")
     plt.show()
 
     # print("Mean sq. error:" + str(mean_squared_error(y, predictions)))
 
-    return predictions, prediction_timestamp_2plot
+    return predictions, predict_timestamp_list
 
 
 def predict_plotly(ticker, x, y, x_train, y_train, days_predict):

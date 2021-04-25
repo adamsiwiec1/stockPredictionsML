@@ -44,7 +44,7 @@ def predict(list_of_tickers, days_to_predict, csv_bool, png_bool, filepath):
                     prices = np.array(predictions)
                     # dates = np.array(dates)
                     data = pd.DataFrame({"Price": prices})
-                    data.to_csv(str(filepath) + f"/{ticker}/{ticker}.csv")
+                    data.to_csv(str(filepath) + f"/{ticker}.csv")
                     print(f"Successfully created .csv located at: {filepath}/{ticker}/{ticker}.csv")
                 except Exception as e:
                     print(e)
