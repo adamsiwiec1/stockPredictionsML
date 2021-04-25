@@ -24,39 +24,40 @@ def enter_stock(ticker, start_date, end_date):
     return data
 
 
-def create_timestamps(stockData, dateArray):
+# *** Step 1c. Convert our dates to timestamps *** #
+def create_timestamps(stock_data, date_array):
     timestamps = []
-    for x in range(len(dateArray)):
-        stringTime = (str(stockData['Date'][x]))
-        stringTime = stringTime.split(' ')
-        timestamp = time.mktime(datetime.strptime(stringTime[0], "%Y-%m-%d").timetuple())
+    for x in range(len(date_array)):
+        str_time = (str(stock_data['Date'][x]))
+        str_time = str_time.split(' ')
+        timestamp = time.mktime(datetime.strptime(str_time[0], "%Y-%m-%d").timetuple())
         timestamps.append(timestamp)
     return timestamps
 
 
 # *** 2. Prepare the data *** # (We are grabbing 'Open' price)
-def prep_data(rawData):
-    stockData = rawData[rawData.columns[0:1]]
-    stockData.reset_index(level=0, inplace=True)
-    dateArray = pd.to_datetime(stockData['Date'])
-    timestamps = create_timestamps(stockData, dateArray)
-    stockData['Time'] = timestamps  # Add timestamps to our data
-    stockData = stockData.drop(['Date'], axis=1)  # We drop date now that we have timestamp
-    return stockData
+def prep_data(raw_data):
+    stock_data = raw_data[raw_data.columns[0:1]] # Convert Raw Data to Stock Data
+    stock_data.reset_index(level=0, inplace=True)
+    date_array = pd.to_datetime(stock_data['Date'])
+    timestamps = create_timestamps(stock_data, date_array)
+    stock_data['Time'] = timestamps  # Add timestamps to our data
+    stock_data = stock_data.drop(['Date'], axis=1)  # We drop date now that we have timestamp
+    return stock_data
 
 
 # *** 2b. Prepare our model *** #
 def prep_model(prices):
     dataset = prices.values
-    X = dataset[:, 1].reshape(-1, 1)
-    Y = ravel(dataset[:, 0:1])  # Ravel changes it from vector to 1D array
+    x = dataset[:, 1].reshape(-1, 1)
+    y = ravel(dataset[:, 0:1])  # Ravel changes it from vector to 1D array
     validation_size = 0.20  # 0.15
     seed = 7
-    X_train, X_validation, Y_train, Y_validation = train_test_split(X, Y, test_size=validation_size, random_state=seed)
-    return X,Y,X_train,X_validation,Y_train,Y_validation
+    x_train, x_validation, y_train, y_validation = train_test_split(x, y, test_size=validation_size, random_state=seed)
+    return x, y, x_train, x_validation, y_train, y_validation
 
 
-def test_models(X_train,Y_train):
+def test_models(x_train, y_train):
     num_folds = 100
     seed = 7
     scoring = "r2"
@@ -75,7 +76,7 @@ def test_models(X_train,Y_train):
     names = []
     for name, model in models:
         kfold = KFold(n_splits=num_folds, random_state=seed, shuffle=True)
-        cv_results = cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
+        cv_results = cross_val_score(model, x_train, y_train, cv=kfold, scoring=scoring)
         # print(cv_results)
         results.append(cv_results)
         names.append(name)
@@ -83,10 +84,10 @@ def test_models(X_train,Y_train):
         print(msg)
 
 
-def predict_dtr(X, Y, X_train, Y_train, daysToPredict):
+def predict_dtr(x, y, x_train, y_train, days_predict):
     # get prediction dates
     base = date.today()
-    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    dates = [base + timedelta(days=x) for x in range(days_predict)]
     predictTimestampList = []  # Used to display the date of prediction to user
 
     # convert to time stamp
@@ -95,30 +96,30 @@ def predict_dtr(X, Y, X_train, Y_train, daysToPredict):
         predictTimestampList.append(stringTime)
         timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
         # to array X
-        np.append(X, int(timestamp))
+        np.append(x, int(timestamp))
 
     # Define model
     model = DecisionTreeRegressor()
     # Fit to model
-    model.fit(X_train, Y_train)
+    model.fit(x_train, y_train)
     # predict
-    predictions = model.predict(X)
-    print(mean_squared_error(Y, predictions))
+    predictions = model.predict(x)
+    print(mean_squared_error(y, predictions))
 
     print(len(predictions))
-    leng = len(predictions)
-    count = [0,0]
+    length = len(predictions)
+    count = [0, 0]
     for predict in predictions:
-        count[0]+=1
-        if count[0] > leng - daysToPredict:
-            count[1]+=1
+        count[0] += 1
+        if count[0] > length - days_predict:
+            count[1] += 1
             print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
 
 
-def predict_dtr_csv(X, Y, X_train, Y_train, daysToPredict):
+def predict_dtr_csv(x, y, x_train, y_train, days_predict):
     # get prediction dates
     base = date.today()
-    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
+    dates = [base + timedelta(days=x) for x in range(days_predict)]
     predictTimestampList = []  # Used to display the date of prediction to user
 
     # convert to time stamp
@@ -127,58 +128,58 @@ def predict_dtr_csv(X, Y, X_train, Y_train, daysToPredict):
         predictTimestampList.append(stringTime)
         timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
         # to array X
-        np.append(X, int(timestamp))
+        np.append(x, int(timestamp))
 
     # Define model
     model = DecisionTreeRegressor()
     # Fit to model
-    model.fit(X_train, Y_train)
+    model.fit(x_train, y_train)
     # predict
-    predictions = model.predict(X)
-    meanSqError = mean_squared_error(Y, predictions)
-    
+    predictions = model.predict(x)
+    mean_sq_error = mean_squared_error(y, predictions)
+
     # We return the same amount of days in the past as the user wants to predict - e.g. 90 daysToPredict returns 180
-    return predictions[(len(predictions)-(daysToPredict*2)):len(predictions)], meanSqError
+    return predictions[(len(predictions)-(days_predict*2)):len(predictions)], mean_sq_error
 
 
-def predict_dtr_plot(ticker, X, Y, X_train, Y_train, daysToPredict):
+def predict_dtr_plot(ticker, x, y, x_train, y_train, days_predict):
     # get prediction dates
     base = date.today()
-    dates = [base + timedelta(days=x) for x in range(daysToPredict)]
-    predictTimestampList = []  # Used to display the date of prediction to user
+    dates = [base + timedelta(days=x) for x in range(days_predict)]
+    predict_timestamp_list = []  # Used to display the date of prediction to user
 
     # convert to time stamp
     for dt in dates:
-        stringTime = (str(dt))
-        predictTimestampList.append(stringTime)
-        timestamp = time.mktime(datetime.strptime(stringTime, "%Y-%m-%d").timetuple())
+        string_time = (str(dt))
+        predict_timestamp_list.append(string_time)
+        timestamp = time.mktime(datetime.strptime(string_time, "%Y-%m-%d").timetuple())
         # to array X
-        np.append(X, int(timestamp))
+        np.append(x, int(timestamp))
 
     # Define model
     model = DecisionTreeRegressor()
     # Fit to model
-    model.fit(X_train, Y_train)
+    model.fit(x_train, y_train)
     # predict
-    predictions = model.predict(X)
-    predLength = len(predictions)
+    predictions = model.predict(x)
+    # predict_length = len(predictions)
 
     print(len(predictions))
-    leng = len(predictions)
-    count = [0,0]
+    length = len(predictions)
+    count = [0, 0]
     for predict in predictions:
-        count[0]+=1
-        if count[0] > leng - daysToPredict:
-            count[1]+=1
-            print(f'Prediction ({predictTimestampList[count[1]-1]}) = ' + str(predict))
+        count[0] += 1
+        if count[0] > length - days_predict:
+            count[1] += 1
+            print(f'Prediction ({predict_timestamp_list[count[1]-1]}) = ' + str(predict))
 
     # Final step - create and show the graph.
 
-    tempLeng = len(predictTimestampList)
+    pred_length = len(predict_timestamp_list)
     temp = []
     count = 0
-    for leng in range(tempLeng):
-        count+=1
+    for length in range(length):
+        count += 1
         temp.append(count)
 
     # Clear old plot - for the for loop
@@ -187,27 +188,27 @@ def predict_dtr_plot(ticker, X, Y, X_train, Y_train, daysToPredict):
     fig = plt.figure(figsize=(20, 5))
     # plt.yticks(temp)
     # plt.plot(X, Y)
-    # plt.plot(predictTimestampList, predictions[(5313-60):5313])
+    # plt.plot(predict_timestamp_list, predictions[(5313-60):5313])
     plt.ion()
     plt.title(str(ticker))
     plt.ylabel('Price')
     plt.xlabel('Time (Days)')
     plt.yscale('linear')
-    plt.xlabel(predictTimestampList)
+    plt.xlabel(predict_timestamp_list)
     ax = plt.figure().gca()
     plt.suptitle(ticker, fontsize=20)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.plot(predictTimestampList, predictions[(predLength-daysToPredict):predLength]) # Improvement
+    plt.plot(predict_timestamp_list, predictions[(pred_length-days_predict):pred_length])  # Improvement
     plt.grid()
-    ax.set_xticklabels(predictTimestampList, rotation=80)
+    ax.set_xticklabels(predict_timestamp_list, rotation=80)
     # format x-axis (time)
-    plt.xticks(predictTimestampList[1::3],temp[1::3]) # This is numpy's slicing
-    # plt.xticks(predictTimestampList, temp, fontsize=5)
+    plt.xticks(predict_timestamp_list[1::3], temp[1::3])  # This is numpy's slicing
+    # plt.xticks(predict_timestamp_list, temp, fontsize=5)
     # ax.xaxis.rcParams.update({'font.size': 5})
 
     plt.show()
 
-    print("Mean sq. error:" + str(mean_squared_error(Y, predictions)))
+    print("Mean sq. error:" + str(mean_squared_error(y, predictions)))
 
     return predictions
 
