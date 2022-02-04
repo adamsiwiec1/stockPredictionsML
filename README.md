@@ -1,4 +1,2 @@
 # stockPredictionsML
-created a stock prediction machine learning algorithm using historical data from yahoo finance
-
-feel free to fork it
+stock prediction machine learning program using data from yfinance api
